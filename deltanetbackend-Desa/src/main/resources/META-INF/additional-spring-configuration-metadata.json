@@ -1,0 +1,27 @@
+{"properties": [
+  {
+    "name": "tablas",
+    "type": "java.lang.String",
+    "description": "A description for 'tablas'"
+  },
+  {
+    "name": "acciones",
+    "type": "java.lang.String",
+    "description": "A description for 'acciones'"
+  },
+  {
+    "name": "url",
+    "type": "java.lang.String",
+    "description": "A description for 'url'"
+  },
+  {
+    "name": "ruc",
+    "type": "java.lang.String",
+    "description": "A description for 'ruc'"
+  },
+  {
+    "name": "accionesNew",
+    "type": "java.lang.String",
+    "description": "A description for 'accionesNew'"
+  }
+]}

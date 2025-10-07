@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+<head>
+<meta charset="utf-8">
+<title>Mensaje de Correo</title>
+</head>
+<body>
+<div style="width:450px !important; border: 1px solid #ddd !important; margin:auto !important;">
+	<div style="padding-top: 1em !important; padding-bottom: 1em !important; text-align: left! important; background: #00438a !important;">
+	  	<img th:src="${url+'assets/images/deltanet_imagen.png'}" height="35" style="padding-top: 9px !important;"/>
+	  	<span th:text="${type}" style="padding-left: 20px !important;color:#fff !important;text-align: left !important;vertical-align: super !important;"></span>
+	</div>
+	<div>
+		<p th:text="${head}" style="padding-top: 10px!important;padding-left: 20px !important; text-align: left !important;"></p>
+	</div>
+	<div style="text-align: left !important;">
+		<p th:text="${mensaje}" style="padding-left: 20px !important;"></p>
+		<a th:if="${servicio}" th:href="${servicio}" style="padding-left: 20px !important;">ver detalle aquí</a>
+	</div>
+	<hr style="height: 1px !important; background: #ddd !important; border: none !important;">
+	<p style="padding-left: 20px !important;">Por favor no responder a este correo informativo</p>
+	<div style="background: #00438a !important; height: 50px !important;">
+		<p style="text-align: left !important; color:#fff !important; padding-left: 20px !important; padding-top: 15px !important;">Copyright © 2025 Informática Delta. Todos los derechos reservados.</p>
+	</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,133 @@
+package com.delta.deltanet.models.entity;
+
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table(name="adm_sbs_banca")
+public class SbsBanca {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @OneToOne
+    @JoinColumn(name = "id_sbs_tipo")
+    private SbsTipo sbsTipo;
+
+    @Column(length = 100)
+    private String nombre;
+
+    @Column(length = 45)
+    private String acronimo;
+
+    @Column(name = "cuenta_sueldo_flag")
+    private Integer ctaSueldoFlg;
+
+    @Column(name = "codigo_sbs",length = 45)
+    private String codsbs;
+
+    private Integer estado;
+
+    @Column(name = "create_user", length = 20)
+    private String createUser;
+
+    @Column(name = "create_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createDate;
+
+    @Column(name = "update_user", length = 20)
+    private String updateUser;
+
+    @Column(name = "update_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updateDate;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public SbsTipo getSbsTipo() {
+        return sbsTipo;
+    }
+
+    public void setSbsTipo(SbsTipo sbsTipo) {
+        this.sbsTipo = sbsTipo;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getAcronimo() {
+        return acronimo;
+    }
+
+    public void setAcronimo(String acronimo) {
+        this.acronimo = acronimo;
+    }
+
+    public Integer getCtaSueldoFlg() {
+        return ctaSueldoFlg;
+    }
+
+    public void setCtaSueldoFlg(Integer ctaSueldoFlg) {
+        this.ctaSueldoFlg = ctaSueldoFlg;
+    }
+
+    public String getCodsbs() {
+        return codsbs;
+    }
+
+    public void setCodsbs(String codsbs) {
+        this.codsbs = codsbs;
+    }
+
+    public Integer getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Integer estado) {
+        this.estado = estado;
+    }
+
+    public String getCreateUser() {
+        return createUser;
+    }
+
+    public void setCreateUser(String createUser) {
+        this.createUser = createUser;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public String getUpdateUser() {
+        return updateUser;
+    }
+
+    public void setUpdateUser(String updateUser) {
+        this.updateUser = updateUser;
+    }
+
+    public Date getUpdateDate() {
+        return updateDate;
+    }
+
+    public void setUpdateDate(Date updateDate) {
+        this.updateDate = updateDate;
+    }
+}
