@@ -12,7 +12,7 @@ import java.util.Base64;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/cumple") // -> /api/cumple/ping, /api/cumple/plantilla, /api/cumple/preview
+@RequestMapping("/api/cumple")
 public class CumpleController {
 
   private static final int MAX_PNG_BYTES = 10_000_000; // 10 MB
@@ -28,24 +28,28 @@ public class CumpleController {
     return new ResponseStatusException(HttpStatus.BAD_REQUEST, msg);
   }
 
-  // health
+  // Health check
   @GetMapping("/ping")
   public Map<String,String> ping(){ return Map.of("ok","api/cumple alive"); }
 
-  // GET latest active template for sexo (1=M, 2=F)
+  // GET: latest active template per gender (linked to per_nat_sexo)
   @GetMapping("/plantilla")
   public ResponseEntity<Map<String,Object>> get(@RequestParam Integer sexo){
     try {
       var row = jdbc.queryForMap(
-        "SELECT id, id_sexo, descripcion, lista_corr_defecto, msg_body, msg_footer, " +
-        " (CASE WHEN msg_header_banner IS NULL THEN 0 ELSE 1 END) AS has_banner, " +
-        " (CASE WHEN msg_header_image  IS NULL THEN 0 ELSE 1 END) AS has_image " +
-        "FROM adm_ale_msj_cumple WHERE id_sexo=? AND estado_reg=1 ORDER BY id DESC LIMIT 1",
+        "SELECT c.id, c.id_sexo, s.descripcion AS sexo_desc, c.descripcion, " +
+        "c.lista_corr_defecto, c.msg_body, c.msg_footer, " +
+        "(CASE WHEN c.msg_header_banner IS NULL THEN 0 ELSE 1 END) AS has_banner, " +
+        "(CASE WHEN c.msg_header_image  IS NULL THEN 0 ELSE 1 END) AS has_image " +
+        "FROM adm_ale_msj_cumple c " +
+        "JOIN per_nat_sexo s ON s.id = c.id_sexo " +
+        "WHERE c.id_sexo=? AND c.estado_reg=1 ORDER BY c.id DESC LIMIT 1",
         sexo
       );
       return ok(Map.of(
         "id", row.get("id"),
         "id_sexo", row.get("id_sexo"),
+        "sexo_desc", row.get("sexo_desc"),
         "descripcion", row.get("descripcion"),
         "lista_corr_defecto", row.get("lista_corr_defecto"),
         "msg_body", row.get("msg_body"),
@@ -53,15 +57,15 @@ public class CumpleController {
         "has_banner", row.get("has_banner"),
         "has_image", row.get("has_image")
       ));
-    } catch (Exception e) { throw bad("Sin plantilla vigente para sexo=" + sexo); }
+    } catch (Exception e) { throw bad("No existe plantilla activa para sexo=" + sexo); }
   }
 
-  // PUT create/update active template (multipart form-data)
+  // PUT: create or update template (multipart/form-data)
   @PutMapping(value="/plantilla", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<Map<String,Object>> upsert(
       @RequestParam Integer sexo,
       @RequestParam String lista_corr_defecto,
-      @RequestParam String msg_body,   // must include [Primer Nombre] + [Primer Apellido]
+      @RequestParam String msg_body,
       @RequestParam String msg_footer,
       @RequestParam(required=false) String descripcion,
       @RequestParam(value="banner_png", required=false) MultipartFile banner,
@@ -69,11 +73,18 @@ public class CumpleController {
       @RequestParam(value="user", defaultValue="api") String user
   ) throws Exception {
 
-    if (!StringUtils.hasText(msg_body) || msg_body.length() > MAX_GREETING)
-      throw bad("El saludo breve es obligatorio y ≤ 250 caracteres.");
-    if (!msg_body.contains("[Primer Nombre]") || !msg_body.contains("[Primer Apellido]"))
-      throw bad("El saludo debe incluir [Primer Nombre] y [Primer Apellido].");
+    // Validate gender exists in per_nat_sexo
+    Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM per_nat_sexo WHERE id=?", Integer.class, sexo);
+    if (count == null || count == 0)
+      throw bad("El valor de sexo no existe en la tabla per_nat_sexo.");
 
+    // Validate message content
+    if (!StringUtils.hasText(msg_body) || msg_body.length() > MAX_GREETING)
+      throw bad("El mensaje es obligatorio y debe tener ≤ 250 caracteres.");
+    if (!msg_body.contains("[Primer Nombre]") || !msg_body.contains("[Primer Apellido]"))
+      throw bad("El mensaje debe incluir [Primer Nombre] y [Primer Apellido].");
+
+    // Validate images
     if (banner != null && !banner.isEmpty()) {
       if (!"image/png".equalsIgnoreCase(banner.getContentType())) throw bad("banner_png debe ser PNG");
       if (banner.getSize() > MAX_PNG_BYTES) throw bad("banner_png no debe superar 10 MB");
@@ -83,6 +94,7 @@ public class CumpleController {
       if (imagen.getSize() > MAX_PNG_BYTES) throw bad("imagen_png no debe superar 10 MB");
     }
 
+    // Check for existing template
     Integer existingId = null;
     try {
       existingId = jdbc.queryForObject(
@@ -92,6 +104,7 @@ public class CumpleController {
     } catch (Exception ignore) {}
 
     if (existingId == null) {
+      // Insert new
       jdbc.update(
         "INSERT INTO adm_ale_msj_cumple " +
         "(id_sexo, descripcion, lista_corr_defecto, msg_body, msg_footer, " +
@@ -105,6 +118,7 @@ public class CumpleController {
       Integer id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
       return ok(Map.of("id", id, "sexo", sexo));
     } else {
+      // Update existing
       jdbc.update(
         "UPDATE adm_ale_msj_cumple SET descripcion=?, lista_corr_defecto=?, msg_body=?, msg_footer=?, " +
         " update_user=?, update_date=NOW() WHERE id=?",
@@ -118,7 +132,7 @@ public class CumpleController {
     }
   }
 
-  // POST preview → returns HTML with variables replaced (Java 11 safe)
+  // POST: Preview HTML with substituted variables
   @PostMapping("/preview")
   public ResponseEntity<Map<String,Object>> preview(@RequestBody Map<String,String> body){
     Integer sexo = Integer.valueOf(body.getOrDefault("sexo","1"));
@@ -126,8 +140,10 @@ public class CumpleController {
     String apellido = body.getOrDefault("primerApellido","Apellido");
 
     var row = jdbc.queryForMap(
-      "SELECT msg_body, msg_footer, msg_header_banner, msg_header_image " +
-      "FROM adm_ale_msj_cumple WHERE id_sexo=? AND estado_reg=1 ORDER BY id DESC LIMIT 1",
+      "SELECT c.msg_body, c.msg_footer, c.msg_header_banner, c.msg_header_image, s.descripcion AS sexo_desc " +
+      "FROM adm_ale_msj_cumple c " +
+      "JOIN per_nat_sexo s ON s.id = c.id_sexo " +
+      "WHERE c.id_sexo=? AND c.estado_reg=1 ORDER BY c.id DESC LIMIT 1",
       sexo
     );
 
