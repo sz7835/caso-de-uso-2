@@ -24,17 +24,25 @@ public class CumpleController {
   private ResponseEntity<Map<String,Object>> ok(Map<String,Object> data){
     return ResponseEntity.ok(Map.of("error", false, "data", data));
   }
+
   private ResponseStatusException bad(String msg){
     return new ResponseStatusException(HttpStatus.BAD_REQUEST, msg);
   }
 
   // Health check
   @GetMapping("/ping")
-  public Map<String,String> ping(){ return Map.of("ok","api/cumple alive"); }
+  public Map<String,String> ping(){
+    return Map.of("ok","api/cumple alive");
+  }
 
   // GET: latest active template per gender (linked to per_nat_sexo)
   @GetMapping("/plantilla")
   public ResponseEntity<Map<String,Object>> get(@RequestParam Integer sexo){
+    // ✅ Validate gender exists in per_nat_sexo
+    Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM per_nat_sexo WHERE id=?", Integer.class, sexo);
+    if (count == null || count == 0)
+      throw bad("El valor de sexo no existe en la tabla per_nat_sexo.");
+
     try {
       var row = jdbc.queryForMap(
         "SELECT c.id, c.id_sexo, s.descripcion AS sexo_desc, c.descripcion, " +
@@ -57,7 +65,9 @@ public class CumpleController {
         "has_banner", row.get("has_banner"),
         "has_image", row.get("has_image")
       ));
-    } catch (Exception e) { throw bad("No existe plantilla activa para sexo=" + sexo); }
+    } catch (Exception e) {
+      throw bad("No existe plantilla activa para sexo=" + sexo);
+    }
   }
 
   // PUT: create or update template (multipart/form-data)
@@ -73,7 +83,7 @@ public class CumpleController {
       @RequestParam(value="user", defaultValue="api") String user
   ) throws Exception {
 
-    // Validate gender exists in per_nat_sexo
+    // ✅ Validate gender exists in per_nat_sexo
     Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM per_nat_sexo WHERE id=?", Integer.class, sexo);
     if (count == null || count == 0)
       throw bad("El valor de sexo no existe en la tabla per_nat_sexo.");
@@ -138,6 +148,11 @@ public class CumpleController {
     Integer sexo = Integer.valueOf(body.getOrDefault("sexo","1"));
     String nombre = body.getOrDefault("primerNombre","Nombre");
     String apellido = body.getOrDefault("primerApellido","Apellido");
+
+    // ✅ Validate gender exists in per_nat_sexo
+    Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM per_nat_sexo WHERE id=?", Integer.class, sexo);
+    if (count == null || count == 0)
+      throw bad("El valor de sexo no existe en la tabla per_nat_sexo.");
 
     var row = jdbc.queryForMap(
       "SELECT c.msg_body, c.msg_footer, c.msg_header_banner, c.msg_header_image, s.descripcion AS sexo_desc " +
