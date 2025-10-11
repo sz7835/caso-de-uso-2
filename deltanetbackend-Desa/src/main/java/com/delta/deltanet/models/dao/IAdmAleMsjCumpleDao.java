@@ -9,12 +9,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface IAdmAleMsjCumpleDao extends JpaRepository<AdmAleMsjCumple, Integer> {
 
-    // Get the latest active template for a specific gender
+    // Latest active template for a specific gender (by id_sexo)
     @Query(
         value = "SELECT * FROM adm_ale_msj_cumple " +
                 "WHERE id_sexo = :sexo AND estado_reg = 1 " +
                 "ORDER BY id DESC LIMIT 1",
         nativeQuery = true
     )
-    AdmAleMsjCumple findLatestBySexo(@Param("sexo") int sexo);
+    AdmAleMsjCumple findLatestBySexo(@Param("sexo") Integer sexo);
 }
