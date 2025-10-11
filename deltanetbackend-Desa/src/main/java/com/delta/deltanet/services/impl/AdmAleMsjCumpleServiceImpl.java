@@ -1,13 +1,11 @@
-package com.delta.deltanet.models.service.impl;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+package com.delta.deltanet.services.impl;
 
 import com.delta.deltanet.models.dao.IAdmAleMsjCumpleDao;
 import com.delta.deltanet.models.entity.AdmAleMsjCumple;
-import com.delta.deltanet.models.entity.PerNatSexo;
-import com.delta.deltanet.models.service.IAdmAleMsjCumpleService;
+import com.delta.deltanet.services.IAdmAleMsjCumpleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdmAleMsjCumpleServiceImpl implements IAdmAleMsjCumpleService {
@@ -17,13 +15,10 @@ public class AdmAleMsjCumpleServiceImpl implements IAdmAleMsjCumpleService {
 
     @Override
     @Transactional(readOnly = true)
-    public AdmAleMsjCumple findLatestBySexo(PerNatSexo sexo) {
-        if (sexo == null) return null;
-
-        // DAO expects an int (id of PerNatSexo), not the entity itself
-        Integer sexoId = sexo.getId(); // If your entity uses a different getter, tell me and I'll switch it.
-        if (sexoId == null) return null;
-
+    public AdmAleMsjCumple findLatestBySexo(Integer sexoId) {
+        if (sexoId == null) {
+            return null;
+        }
         return cumpleDao.findLatestBySexo(sexoId);
     }
 }
