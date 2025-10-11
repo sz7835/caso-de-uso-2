@@ -9,12 +9,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface IAdmAleMsjCumpleDao extends JpaRepository<AdmAleMsjCumple, Integer> {
 
-    // Latest active template for a specific gender (by id_sexo)
+    // This matches the name your service is calling.
+    // Native SQL so we can ORDER BY id DESC LIMIT 1 reliably.
     @Query(
         value = "SELECT * FROM adm_ale_msj_cumple " +
-                "WHERE id_sexo = :sexo AND estado_reg = 1 " +
+                "WHERE id_sexo = :sexoId AND estado_reg = :estadoReg " +
                 "ORDER BY id DESC LIMIT 1",
         nativeQuery = true
     )
-    AdmAleMsjCumple findLatestBySexo(@Param("sexo") Integer sexo);
+    AdmAleMsjCumple findTopBySexoIdAndEstadoRegOrderByIdDesc(@Param("sexoId") Integer sexoId,
+                                                             @Param("estadoReg") Integer estadoReg);
+
+    // (Optional) A clean Spring-Data derived query you can migrate your service to later:
+    // AdmAleMsjCumple findFirstBySexo_IdAndEstadoRegOrderByIdDesc(Integer sexoId, Integer estadoReg);
 }
