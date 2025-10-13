@@ -1,24 +1,14 @@
 package com.delta.deltanet.models.entity;
 
-import javax.persistence.*;
-<<<<<<< HEAD
-import java.io.Serializable;
-
-@Entity
-@Table(name = "per_nat_sexo")
-public class PerNatSexo implements Serializable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    private String descripcion;
-
-=======
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "per_nat_sexo")
 public class PerNatSexo {
+
     @Id
     @Column(name = "id")
     private Integer id;
@@ -26,12 +16,27 @@ public class PerNatSexo {
     @Column(name = "descripcion")
     private String descripcion;
 
-    public PerNatSexo() {}
+    public PerNatSexo() {
+    }
 
->>>>>>> 7fc03ff (chore(release): v2.0 – back to plain single controller)
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public PerNatSexo(Integer id, String descripcion) {
+        this.id = id;
+        this.descripcion = descripcion;
+    }
 
-    public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
 }
