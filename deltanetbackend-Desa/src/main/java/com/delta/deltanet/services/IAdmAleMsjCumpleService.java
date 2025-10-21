@@ -3,10 +3,20 @@ package com.delta.deltanet.services;
 import com.delta.deltanet.models.entity.AdmAleMsjCumple;
 
 public interface IAdmAleMsjCumpleService {
+
+    AdmAleMsjCumple findLatestBySexo(Integer sexo);
+
     /**
-     * Returns the latest active birthday template for the given sexo ID.
-     * @param sexoId value matching id_sexo in DB (e.g., 1, 2)
-     * @return AdmAleMsjCumple or null if none
+     * Partial upsert (PATCH-style): only non-null params overwrite existing values.
      */
-    AdmAleMsjCumple findLatestBySexo(Integer sexoId);
+    AdmAleMsjCumple upsertPlantilla(
+        Integer sexo,
+        String descripcion,
+        String ccDefecto,
+        String saludoBreve,
+        byte[] headerBanner,
+        byte[] headerImage,
+        String footer,
+        String createUser
+    );
 }
